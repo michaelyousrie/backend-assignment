@@ -66,9 +66,11 @@ class UserTest extends TestCase
         $this->get('/api/v1/users')
             ->assertStatus(200)
             ->assertJson([
-                ['id' => $popularGuy->id],
-                ['id' => $normalGuy->id],
-                ['id' => $poorGuy->id]
+                'data' => [
+                    ['id' => $popularGuy->id],
+                    ['id' => $normalGuy->id],
+                    ['id' => $poorGuy->id]
+                ]
             ]);
     }
 }
