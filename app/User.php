@@ -4,12 +4,9 @@ namespace App;
 
 use App\UserView;
 use App\UserVisit;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use App\Helpers\Paginator;
 
 class User extends Authenticatable
 {
@@ -70,32 +67,19 @@ class User extends Authenticatable
         ]);
     }
 
-
-    public static function addAViewToEveryone()
-    {
-        $query = "INSERT INTO user_views (user_id)
-        SELECT id
-        FROM `users`";
-
-        return DB::statement($query);
-    }
-
-
     public static function getByWeeklyVisits()
     {
-        $query = "SELECT * FROM `users` u
-            LEFT JOIN ( 
-                SELECT user_id, COUNT(*) AS weekly_visits FROM `user_visits` uv GROUP BY user_id
-            ) v ON (u.id = v.user_id)
-        ORDER BY v.weekly_visits DESC";
+        $select = DB::table('user_visits')
+            ->select('user_id', DB::raw("COUNT(*) AS weekly_visits"))
+            ->groupBy("user_id");
 
-        $query_results = DB::select($query);
-        $results = [];
+        $results = DB::table('users')
+            ->leftJoinSub($select, 'user_visits', function ($join) {
+                $join->on('user_visits.user_id', '=', 'users.id');
+            })
+            ->orderBy('weekly_visits', 'desc')
+            ->get();
 
-        foreach ($query_results as $result) {
-            $results[] = new User((array) $result);
-        }
-
-        return Paginator::paginate($results);
+        return $results;
     }
 }

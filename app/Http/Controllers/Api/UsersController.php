@@ -5,14 +5,23 @@ namespace App\Http\Controllers\Api;
 use App\User;
 use App\Http\Resources\UserResource;
 use App\Http\Controllers\Controller;
+use App\Services\UserService;
+use Illuminate\Http\Request;
 
 class UsersController extends Controller
 {
-    public function index()
-    {
-        User::addAViewToEveryone();
+    protected $userService;
 
-        return UserResource::collection(User::getByWeeklyVisits());
+    public function __construct(UserService $service)
+    {
+        $this->userService = $service;
+    }
+
+    public function index(Request $request)
+    {
+        $this->userService->addViewToEveryUser();
+
+        return $this->userService->getUsersByWeeklyVisits($request);
     }
 
 
