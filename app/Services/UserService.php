@@ -10,17 +10,17 @@ use Illuminate\Support\Facades\DB;
 
 class UserService
 {
-    protected static $cacheTime = 20 * 60; // 20 minutes
     protected static $cachedResultsKey = "users_ordered_by_weekly_visits";
 
     public function getUsersByWeeklyVisits($request)
     {
         $page = $request->page ?: 1;
         $cacheKey = $this->makeCacheKeyFromPage($page);
+        $cacheTime = env("USERS_CACHE_TIME", '20') * 60;
 
         if (!Cache::has($cacheKey)) {
             $results = User::getByWeeklyVisits();
-            Cache::put($cacheKey, $results, self::$cacheTime);
+            Cache::put($cacheKey, $results, $cacheTime);
         } else {
             $results = Cache::get($cacheKey);
         }
